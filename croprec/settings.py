@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-n)ny1xn1hw-64=@j4g)t*&3=21!dicmq-f@33c*ozm85q+yp&+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -124,3 +124,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # settings.py (development)
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "webmaster@localhost"
+
+import os
+
+if os.environ.get("RENDER"):
+    from django.core.management import call_command
+    try:
+        call_command("migrate")
+    except:
+        pass
