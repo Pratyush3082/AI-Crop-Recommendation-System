@@ -1,0 +1,475 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>AI Crop Recommendation System</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root{
+            --brand: #2e7d32;
+            --muted-bg: #eef7ee;
+            --card-shadow: 0 6px 18px rgba(46,125,50,0.06);
+        }
+        body {
+            background: linear-gradient(135deg, #e8f5e9, #e0f7fa);
+            font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #213;
+        }
+        nav.navbar {
+            background-color: var(--brand) !important;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.05);
+        }
+        nav a.nav-link, nav .navbar-brand {
+            color: white !important;
+            font-weight: 500;
+        }
+        .page-container {
+            max-width: 920px;
+            margin: 90px auto 40px;
+            padding: 0 18px;
+        }
+        .card-main {
+            background: white;
+            padding: 28px;
+            border-radius: 14px;
+            box-shadow: var(--card-shadow);
+            position: relative;
+        }
+        h1 {
+            text-align: center;
+            color: var(--brand);
+            font-weight: 700;
+            margin-bottom: 18px;
+            font-size: 1.9rem;
+        }
+        label {
+            font-weight: 600;
+            color: #2b3b36;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Info icon + collapse box */
+        .info-icon {
+            display:inline-flex;
+            width:20px;
+            height:20px;
+            align-items:center;
+            justify-content:center;
+            border-radius:50%;
+            background: rgba(46,125,50,0.08);
+            color: var(--brand);
+            font-weight:600;
+            font-size:0.85rem;
+            cursor: pointer;
+            border: 1px solid rgba(46,125,50,0.12);
+            line-height:1;
+        }
+        .info-icon:focus { outline: 2px solid rgba(46,125,50,0.18); }
+
+        .range-box {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 260ms ease, opacity 180ms ease;
+            opacity: 0;
+            background: var(--muted-bg);
+            border-left: 3px solid var(--brand);
+            padding: 0 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+            font-size: 0.93rem;
+            color: #234;
+        }
+        .range-box.open {
+            padding: 10px 12px;
+            max-height: 240px; /* generous */
+            opacity: 1;
+        }
+
+        /* inputs */
+        .form-control {
+            border-radius: 8px;
+            box-shadow: none;
+            padding: .6rem .75rem;
+        }
+
+        .btn-custom {
+            background-color: var(--brand);
+            color: white;
+            width: 100%;
+            font-size: 1.05rem;
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: none;
+        }
+        .btn-custom:hover { background-color: #256628; }
+
+        /* result box */
+        .result-box {
+            background: linear-gradient(180deg,#f7fbf7,#f1f8e9);
+            border-left: 6px solid var(--brand);
+            padding: 18px;
+            border-radius: 10px;
+            margin-top: 22px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.03);
+        }
+        .pdf-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+        }
+        .pdf-btn .btn-circle {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            font-size: 0.95rem;
+            padding: 0;
+        }
+
+        /* misc */
+        .muted-small { font-size: .91rem; color:#6b6f6b; }
+        .field-row { margin-bottom: 6px; }
+        .grid-2cols { display:flex; gap:18px; }
+        .grid-3cols { display:flex; gap:18px; }
+        .progress { height: 14px; border-radius:8px; overflow:hidden; background: #e9efe9; }
+        .progress-bar { background: linear-gradient(90deg,#2e7d32,#2b7a2f); }
+
+        /* about & contact cards (unchanged content but slightly elevated) */
+        #about, #contact {
+            max-width: 920px;
+            margin: 28px auto;
+            background: white;
+            padding: 18px 22px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+        }
+
+        footer {
+            background-color: var(--brand);
+            color: white;
+            text-align: center;
+            padding: 14px 0;
+            margin-top: 22px;
+            font-size: 0.96rem;
+        }
+
+        /* responsive */
+        @media (max-width: 880px){
+            .grid-2cols, .grid-3cols { flex-direction: column; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold" href="#">🌾 Crop AI</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item me-3">
+                            <span class="nav-link">👤 {{ user.username }}</span>
+                        </li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+                    {% endif %}
+                    <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <div class="card-main">
+            <h1>AI Crop Recommendation System</h1>
+
+            <!-- Predict form -->
+            <form method="POST" id="predict-form" novalidate>
+                {% csrf_token %}
+
+                <!-- First row: N, P, K -->
+                <div class="grid-3cols mb-3">
+                    <div style="flex:1;">
+                        <label for="N" class="form-label">
+                            Nitrogen (N)
+                            <button type="button" class="info-icon" aria-expanded="false" aria-controls="rangeN" onclick="toggleBox('rangeN', this)">i</button>
+                        </label>
+                        <input type="number" step="any" name="N" id="N" class="form-control" required value="{{ data.N|default:'' }}">
+                        <div id="rangeN" class="range-box" aria-hidden="true">
+                            Recommended: <strong>0 — 140</strong><br>
+                            Typical examples: 20, 40, 60
+                        </div>
+                    </div>
+
+                    <div style="flex:1;">
+                        <label for="P" class="form-label">
+                            Phosphorus (P)
+                            <button type="button" class="info-icon" aria-expanded="false" aria-controls="rangeP" onclick="toggleBox('rangeP', this)">i</button>
+                        </label>
+                        <input type="number" step="any" name="P" id="P" class="form-control" required value="{{ data.P|default:'' }}">
+                        <div id="rangeP" class="range-box" aria-hidden="true">
+                            Recommended: <strong>0 — 160</strong>
+                        </div>
+                    </div>
+
+                    <div style="flex:1;">
+                        <label for="K" class="form-label">
+                            Potassium (K)
+                            <button type="button" class="info-icon" aria-expanded="false" aria-controls="rangeK" onclick="toggleBox('rangeK', this)">i</button>
+                        </label>
+                        <input type="number" step="any" name="K" id="K" class="form-control" required value="{{ data.K|default:'' }}">
+                        <div id="rangeK" class="range-box" aria-hidden="true">
+                            Recommended: <strong>0 — 200</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second row: Temperature, Humidity -->
+                <div class="grid-2cols mb-3">
+                    <div style="flex:1;">
+                        <label for="temperature" class="form-label">
+                            Temperature (°C)
+                            <button type="button" class="info-icon" aria-expanded="false" aria-controls="rangeTemp" onclick="toggleBox('rangeTemp', this)">i</button>
+                        </label>
+                        <input type="number" step="any" name="temperature" id="temperature" class="form-control" required value="{{ data.temperature|default:'' }}">
+                        <div id="rangeTemp" class="range-box" aria-hidden="true">
+                            Recommended: <strong>-5 — 50 °C</strong><br>
+                            Typical: 10–35 °C
+                        </div>
+                    </div>
+
+                    <div style="flex:1;">
+                        <label for="humidity" class="form-label">
+                            Humidity (%)
+                            <button type="button" class="info-icon" aria-expanded="false" aria-controls="rangeHum" onclick="toggleBox('rangeHum', this)">i</button>
+                        </label>
+                        <input type="number" step="any" name="humidity" id="humidity" class="form-control" required value="{{ data.humidity|default:'' }}">
+                        <div id="rangeHum" class="range-box" aria-hidden="true">
+                            Recommended: <strong>0 — 100%</strong><br>
+                            Typical: 30–90%
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Third row: pH, Rainfall -->
+                <div class="grid-2cols mb-3">
+                    <div style="flex:1;">
+                        <label for="ph" class="form-label">
+                            Soil pH
+                            <button type="button" class="info-icon" aria-expanded="false" aria-controls="rangePH" onclick="toggleBox('rangePH', this)">i</button>
+                        </label>
+                        <input type="number" step="any" name="ph" id="ph" class="form-control" required value="{{ data.ph|default:'' }}">
+                        <div id="rangePH" class="range-box" aria-hidden="true">
+                            Recommended: <strong>3.5 — 9.0</strong><br>
+                            Neutral ≈ 6.5–7.5
+                        </div>
+                    </div>
+
+                    <div style="flex:1;">
+                        <label for="rainfall" class="form-label">
+                            Rainfall (mm)
+                            <button type="button" class="info-icon" aria-expanded="false" aria-controls="rangeRain" onclick="toggleBox('rangeRain', this)">i</button>
+                        </label>
+                        <input type="number" step="any" name="rainfall" id="rainfall" class="form-control" required value="{{ data.rainfall|default:'' }}">
+                        <div id="rangeRain" class="range-box" aria-hidden="true">
+                            Recommended: <strong>0 — 600 mm</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top:8px;">
+                    <button id="predictBtn" type="submit" class="btn btn-custom">Predict Crop</button>
+                </div>
+            </form>
+
+            <!-- Result card (only shown after prediction) -->
+            {% if result %}
+            <div class="result-box">
+                <form method="POST" class="pdf-btn" title="Download PDF report (inputs included)">
+                    {% csrf_token %}
+                    {% if data %}
+                        {% for key, value in data.items %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endfor %}
+                    {% else %}
+                        <input type="hidden" name="N" value="{{ request.POST.N }}">
+                        <input type="hidden" name="P" value="{{ request.POST.P }}">
+                        <input type="hidden" name="K" value="{{ request.POST.K }}">
+                        <input type="hidden" name="temperature" value="{{ request.POST.temperature }}">
+                        <input type="hidden" name="humidity" value="{{ request.POST.humidity }}">
+                        <input type="hidden" name="ph" value="{{ request.POST.ph }}">
+                        <input type="hidden" name="rainfall" value="{{ request.POST.rainfall }}">
+                    {% endif %}
+                    <input type="hidden" name="download" value="1">
+                    <button type="submit" class="btn btn-outline-success btn-circle" aria-label="Download PDF" data-bs-toggle="tooltip" data-bs-placement="left">📄</button>
+                </form>
+
+                <h4>✅ Recommended Crop:</h4>
+                <h2 class="text-success" style="margin-bottom:4px;">{{ result.crop|title }}</h2>
+
+                <!-- confidence text: raw value is stored in data-raw so JS can format correctly -->
+                <p class="muted-small"><strong>Confidence:</strong>
+                    <span id="confText" data-raw="{{ result.confidence }}">{{ result.confidence }}</span>
+                </p>
+
+                {% if top3 %}
+                    <hr style="margin:10px 0 14px;">
+                    <h6 style="margin-bottom:12px;">🌾 Top recommendations</h6>
+                    <ul class="list-unstyled">
+                        {% for item in top3 %}
+                        <li style="margin-bottom:12px;">
+                            <div class="d-flex justify-content-between">
+                                <strong>
+                                    {% if item.crop %}{{ item.crop|title }}{% else %}{{ item.0|default:"Unknown"|title }}{% endif %}
+                                </strong>
+                                <span class="muted-small">
+                                    <span class="top3-text" data-raw="{% if item.confidence %}{{ item.confidence }}{% else %}{{ item.1 }}{% endif %}">{% if item.confidence %}{{ item.confidence }}{% else %}{{ item.1 }}{% endif %}</span>
+                                </span>
+                            </div>
+                            <div class="progress" style="height:14px; margin-top:6px;">
+                                <div class="progress-bar" role="progressbar"
+                                     data-val="{% if item.confidence %}{{ item.confidence }}{% else %}{{ item.1 }}{% endif %}"
+                                     aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if error %}
+            <div class="error-box mt-3">
+                <h5>⚠ Error:</h5>
+                <p>{{ error }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- About & Contact (kept exactly as requested; styling slightly matched) -->
+    <div id="about" class="container mt-4 mb-3">
+        <h3>About the Project</h3>
+        <p>
+            The <strong>AI Crop Recommendation System</strong> uses machine learning to suggest the most
+            suitable crop based on soil nutrients (N, P, K), temperature, humidity, pH, and rainfall.
+            It helps farmers make data-driven decisions to maximize yield and sustainability.
+        </p>
+    </div>
+
+    <div id="contact" class="container mb-5">
+        <h3>Contact Us</h3>
+        <p>
+            <strong>Developed by:</strong> Pratyush Singh <br>
+            <strong>Institution:</strong> IIMT College of Engineering, Greater Noida <br>
+            <strong>Email:</strong> prasingh3082@gmail.com
+        </p>
+    </div>
+
+    <footer>
+        © {{ now|date:"Y" }} AI Crop Recommendation System | Designed by Pratyush Singh 🌾
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      // Toggle range-box visibility (adds accessible attributes)
+      function toggleBox(id, btn) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const isOpen = el.classList.contains('open');
+        if (isOpen) {
+          el.classList.remove('open');
+          el.setAttribute('aria-hidden', 'true');
+          if (btn) btn.setAttribute('aria-expanded', 'false');
+        } else {
+          el.classList.add('open');
+          el.setAttribute('aria-hidden', 'false');
+          if (btn) btn.setAttribute('aria-expanded', 'true');
+          // scroll into view a little on small screens
+          if (window.innerWidth < 700) {
+            setTimeout(()=> el.scrollIntoView({behavior:'smooth', block:'center'}), 180);
+          }
+        }
+      }
+
+      // Format confidence numbers and top3 bars on DOM load
+      document.addEventListener('DOMContentLoaded', function () {
+        // Format main confidence
+        const confSpan = document.getElementById('confText');
+        if (confSpan) {
+          const raw = confSpan.getAttribute('data-raw');
+          if (raw !== null && raw !== '') {
+            let num = Number(raw);
+            if (!isFinite(num)) { confSpan.textContent = raw; }
+            else {
+              if (num <= 1) num = num * 100; // treat 0..1 as fraction
+              confSpan.textContent = num.toFixed(2) + "%";
+            }
+          }
+        }
+
+        // Top3: set progress widths and format numbers
+        document.querySelectorAll('.progress-bar[data-val]').forEach(function(bar){
+          let raw = Number(bar.getAttribute('data-val'));
+          if (!isFinite(raw)) raw = 0;
+          let percent = raw;
+          if (percent <= 1) percent = percent * 100;
+          if (percent < 0) percent = 0;
+          if (percent > 100) percent = 100;
+          bar.style.width = percent + '%';
+          bar.setAttribute('aria-valuenow', Math.round(percent));
+
+          // update the textual sibling (if present)
+          const parent = bar.closest('li');
+          if (parent) {
+            const textSpan = parent.querySelector('.top3-text');
+            if (textSpan) {
+              let rawT = Number(textSpan.getAttribute('data-raw'));
+              if (!isFinite(rawT)) { textSpan.textContent = textSpan.textContent; }
+              else {
+                if (rawT <= 1) rawT = rawT * 100;
+                textSpan.textContent = rawT.toFixed(2) + '%';
+              }
+            }
+          }
+        });
+
+        // disable double-submit UX: on form submit, disable button and show spinner text
+        const form = document.getElementById('predict-form');
+        const btn = document.getElementById('predictBtn');
+        if (form && btn) {
+          form.addEventListener('submit', function(e){
+            // soft validation: highlight gross out-of-range values (optional)
+            // Disable to avoid double submit
+            btn.disabled = true;
+            btn.innerHTML = 'Predicting...';
+          });
+        }
+
+        // enable Bootstrap tooltips if used
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (el) { return new bootstrap.Tooltip(el); });
+      });
+    </script>
+</body>
+</html>
