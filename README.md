@@ -1,5 +1,7 @@
 # AI Crop Recommendation System
 
+![Project Screenshot](project_screenshot.png)
+
 ## Overview
 A Machine Learning based Crop Recommendation System developed using Django and Random Forest Classifier.
 
