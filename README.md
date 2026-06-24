@@ -1,7 +1,5 @@
 # AI Crop Recommendation System
 
-![Project Screenshot](project_screenshot.png)
-
 ## Overview
 A Machine Learning based Crop Recommendation System developed using Django and Random Forest Classifier.
 
@@ -54,3 +52,17 @@ The system recommends the most suitable crop based on:
 
 Pratyush Singh
 B.Tech Information Technology
+
+## Project Screenshots
+
+### Screenshot 1
+![Screenshot 1](Screenshot%202026-06-24%20142720.png)
+
+### Screenshot 2
+![Screenshot 2](Screenshot%202026-06-24%20142936.png)
+
+### Screenshot 3
+![Screenshot 3](Screenshot%202026-06-24%20142954.png)
+
+### Screenshot 4
+![Screenshot 4](Screenshot%202026-06-24%20143047.png)
